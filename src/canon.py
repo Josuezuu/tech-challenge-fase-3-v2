@@ -132,7 +132,7 @@ CONDICOES: tuple[Condicao, ...] = (
     Condicao(
         chave="dor_toracica",
         nome="Dor Toracica Aguda",
-        sinonimos=("dor precordial", "dor no peito", "precordialgia", "DT"),
+        sinonimos=("dor toracica", "dor precordial", "dor no peito", "precordialgia", "DT"),
         gravidade="alta",
         setor_sigla="UCO",
         exames_obrigatorios=("ECG_12_DERIVACOES", "TROPONINA_ULTRASSENSIVEL", "CKMB_MASSA"),
