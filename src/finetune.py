@@ -115,13 +115,15 @@ def treinar(
     hp = config.HIPERPARAMETROS_LORA
 
     def tokenizar(lote):
+        # sem padding: batch_size=1 nao precisa de tamanho uniforme dentro do
+        # batch, e forcar max_length aqui inflava o loss (padding vira maioria
+        # dos tokens e entrava sem mascara em labels, ver commit que fixou isso).
         saida = tokenizer(
             lote["text"],
             truncation=True,
             max_length=hp["max_seq_length"],
-            padding="max_length",
         )
-        saida["labels"] = saida["input_ids"].copy()
+        saida["labels"] = [ids.copy() for ids in saida["input_ids"]]
         return saida
 
     dataset_tokenizado = dataset.map(tokenizar, batched=True, remove_columns=["text"])
