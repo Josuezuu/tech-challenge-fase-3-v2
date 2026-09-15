@@ -82,7 +82,7 @@ class IndiceFAISS:
         self._vectorstore = vectorstore
 
     @classmethod
-    def construir(cls, chunks: list[Chunk], modelo_embedding: str = config.EMBEDDING_MODEL_ID) -> "IndiceFAISS":
+    def construir(cls, chunks: list[Chunk], modelo_embedding: str = config.EMBEDDING_MODEL_ID) -> IndiceFAISS:
         from langchain_community.embeddings import HuggingFaceEmbeddings
         from langchain_community.vectorstores import FAISS
         from langchain_core.documents import Document
@@ -99,7 +99,7 @@ class IndiceFAISS:
         self._vectorstore.save_local(str(caminho))
 
     @classmethod
-    def carregar(cls, caminho: Path, modelo_embedding: str = config.EMBEDDING_MODEL_ID) -> "IndiceFAISS":
+    def carregar(cls, caminho: Path, modelo_embedding: str = config.EMBEDDING_MODEL_ID) -> IndiceFAISS:
         from langchain_community.embeddings import HuggingFaceEmbeddings
         from langchain_community.vectorstores import FAISS
 

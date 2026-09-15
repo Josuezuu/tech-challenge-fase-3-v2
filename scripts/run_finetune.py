@@ -19,9 +19,12 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.etapa == "train":
-        resultado = finetune.treinar(config.DATASET_TREINO)
-        print(f"Loss final: {resultado['loss_final']:.4f}")
+        resultado = finetune.treinar(config.DATASET_TREINO, config.DATASET_HOLDOUT)
+        print(f"Loss final (treino): {resultado['loss_final']:.4f}")
+        print("Ultimos passos de treino:")
         print(json.dumps(resultado["curva_loss"][-5:], indent=2))
+        print("Curva de loss de validacao:")
+        print(json.dumps(resultado["curva_loss_validacao"], indent=2))
         return
 
     finetune.mesclar_adapter_em_cpu(config.ADAPTER_DIR, config.MODELS_DIR / "merged")

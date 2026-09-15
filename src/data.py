@@ -41,7 +41,7 @@ class Exemplo:
     categoria: str
     origem: str
 
-    def com(self, **kwargs: str) -> "Exemplo":
+    def com(self, **kwargs: str) -> Exemplo:
         return replace(self, **kwargs)
 
 
@@ -476,7 +476,7 @@ def dividir_estagio(
 
     treino: list[Exemplo] = []
     holdout: list[Exemplo] = []
-    for categoria, grupo in por_categoria.items():
+    for grupo in por_categoria.values():
         grupo_embaralhado = grupo[:]
         rng.shuffle(grupo_embaralhado)
         n_holdout = max(1, round(len(grupo_embaralhado) * proporcao_holdout)) if len(grupo_embaralhado) > 1 else 0

@@ -122,7 +122,7 @@ _PADRAO_CODIGO_FONTE = re.compile(r"\b[A-Z]+-[A-Z]+-\d+\b")
 
 _FRASES_PEDIDO_PERGUNTA: tuple[re.Pattern[str], ...] = (
     re.compile(r"\bme\s+passe\s+a\s+receita\b", re.IGNORECASE),
-    re.compile(r"\bpassa(?:r)?\s+(?:uma\s+)?receita\b", re.IGNORECASE),
+    re.compile(r"\bpassa(?:r)?\s+(?:a\s+|uma\s+)?receita\b", re.IGNORECASE),
     re.compile(r"\bqual\s+a\s+dose\s+exata\b", re.IGNORECASE),
     re.compile(r"\bprescreva\b", re.IGNORECASE),
     re.compile(r"\bposologia\b", re.IGNORECASE),

@@ -120,8 +120,10 @@ CONDICOES: tuple[Condicao, ...] = (
         conduta=(
             "Abrir a pulseira laranja de sepse do HSA e registrar o horario zero na evolucao.",
             "Coletar o pacote laboratorial obrigatorio antes da primeira dose de antimicrobiano.",
-            "Solicitar antimicrobiano empirico a Farmacia Clinica Central conforme a tabela "
-            "HSA-FARM-02; a posologia e definida pelo medico assistente, nao pelo protocolo.",
+            (
+                "Solicitar antimicrobiano empirico a Farmacia Clinica Central conforme a tabela "
+                "HSA-FARM-02; a posologia e definida pelo medico assistente, nao pelo protocolo."
+            ),
             "Reavaliar perfusao e lactato dentro da janela de reavaliacao declarada.",
         ),
         contraindicacoes=("Nao retardar o antimicrobiano a espera de exame de imagem.",),

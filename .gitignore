@@ -7,6 +7,7 @@ __pycache__/
 # data/processed/*.jsonl e relatorio_preparo.json, docs/evaluation_results.json,
 # docs/loss.json. So o que e binario ou grande demais fica de fora:
 data/raw/pubmedqa/
+data/raw/pubmedqa.jsonl
 data/raw/medquad/
 data/processed/faiss_index/
 data/processed/hospital.db

@@ -89,14 +89,25 @@ def montar_lora(modelo):
     return get_peft_model(modelo, lora_config)
 
 
-def treinar(caminho_dataset: Path, saida_dir: Path = config.ADAPTER_DIR) -> dict:
-    """Treino QLoRA completo. Salva checkpoints intermediarios e a curva de loss."""
+def treinar(
+    caminho_dataset: Path,
+    caminho_holdout: Path = config.DATASET_HOLDOUT,
+    saida_dir: Path = config.ADAPTER_DIR,
+) -> dict:
+    """Treino QLoRA completo. Salva checkpoints intermediarios e as curvas de loss.
+
+    O holdout entra so como `eval_dataset` (mede loss, nao recebe gradiente) —
+    isso nao viola a garantia de que o holdout nunca alimenta o treino.
+    """
     from transformers import Trainer, TrainingArguments
 
     from src.data import carregar
 
     exemplos = carregar(caminho_dataset)
     dataset = montar_dataset_texto(exemplos)
+
+    exemplos_holdout = carregar(caminho_holdout)
+    dataset_holdout = montar_dataset_texto(exemplos_holdout)
 
     modelo, tokenizer = carregar_modelo_base_4bit()
     modelo = montar_lora(modelo)
@@ -114,6 +125,7 @@ def treinar(caminho_dataset: Path, saida_dir: Path = config.ADAPTER_DIR) -> dict
         return saida
 
     dataset_tokenizado = dataset.map(tokenizar, batched=True, remove_columns=["text"])
+    holdout_tokenizado = dataset_holdout.map(tokenizar, batched=True, remove_columns=["text"])
 
     args = TrainingArguments(
         output_dir=str(saida_dir),
@@ -125,27 +137,47 @@ def treinar(caminho_dataset: Path, saida_dir: Path = config.ADAPTER_DIR) -> dict
         save_steps=config.SALVAR_CHECKPOINT_A_CADA_N_PASSOS,
         save_total_limit=10,
         logging_steps=5,
+        eval_strategy="steps",
+        eval_steps=config.SALVAR_CHECKPOINT_A_CADA_N_PASSOS,
+        per_device_eval_batch_size=hp["batch_size"],
         bf16=True,
         seed=hp["seed"],
         report_to=[],
     )
 
-    trainer = Trainer(model=modelo, args=args, train_dataset=dataset_tokenizado)
+    trainer = Trainer(
+        model=modelo,
+        args=args,
+        train_dataset=dataset_tokenizado,
+        eval_dataset=holdout_tokenizado,
+    )
     resultado = trainer.train()
 
     saida_dir.mkdir(parents=True, exist_ok=True)
     modelo.save_pretrained(str(saida_dir))
     tokenizer.save_pretrained(str(saida_dir))
 
-    curva_loss = [
+    curva_loss_treino = [
         {"step": log["step"], "loss": log["loss"]}
         for log in trainer.state.log_history
         if "loss" in log
     ]
+    curva_loss_validacao = [
+        {"step": log["step"], "eval_loss": log["eval_loss"]}
+        for log in trainer.state.log_history
+        if "eval_loss" in log
+    ]
     (config.DOCS_DIR / "loss.json").parent.mkdir(parents=True, exist_ok=True)
-    (config.DOCS_DIR / "loss.json").write_text(json.dumps(curva_loss, indent=2), encoding="utf-8")
+    (config.DOCS_DIR / "loss.json").write_text(
+        json.dumps({"treino": curva_loss_treino, "validacao": curva_loss_validacao}, indent=2),
+        encoding="utf-8",
+    )
 
-    return {"loss_final": resultado.training_loss, "curva_loss": curva_loss}
+    return {
+        "loss_final": resultado.training_loss,
+        "curva_loss": curva_loss_treino,
+        "curva_loss_validacao": curva_loss_validacao,
+    }
 
 
 def mesclar_adapter_em_cpu(adapter_dir: Path, saida_dir: Path) -> None:

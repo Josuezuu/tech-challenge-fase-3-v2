@@ -102,7 +102,6 @@ class ProviderCheckpointLocal:
     def _carregar(self):
         if self._pipeline is None:
             from peft import PeftModel
-            from transformers import AutoModelForCausalLM, AutoTokenizer
 
             from src.finetune import carregar_modelo_base_4bit
 

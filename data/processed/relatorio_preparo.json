@@ -1,0 +1,10 @@
+{
+  "bruto": 124,
+  "normalizado": 124,
+  "anonimizado": 124,
+  "curado": 124,
+  "deduplicado": 124,
+  "truncado": 124,
+  "treino": 105,
+  "holdout": 19
+}
