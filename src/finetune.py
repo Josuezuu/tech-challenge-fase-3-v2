@@ -133,7 +133,9 @@ def treinar(
         per_device_train_batch_size=hp["batch_size"],
         gradient_accumulation_steps=hp["gradient_accumulation_steps"],
         learning_rate=hp["learning_rate"],
-        warmup_ratio=hp["warmup_ratio"],
+        # transformers >=5 fundiu warmup_ratio em warmup_steps: um float < 1 aqui
+        # e interpretado como razao, nao contagem de passos.
+        warmup_steps=hp["warmup_ratio"],
         save_steps=config.SALVAR_CHECKPOINT_A_CADA_N_PASSOS,
         save_total_limit=10,
         logging_steps=5,
