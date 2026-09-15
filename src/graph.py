@@ -77,17 +77,31 @@ def no_sanitizar_entrada(estado: EstadoAssistente) -> EstadoAssistente:
 
 
 def no_guardrail_pergunta(estado: EstadoAssistente) -> EstadoAssistente:
-    deteccao = safety.detectar_prescricao(estado["pergunta_sanitizada"], "pergunta")
-    if not deteccao.disparou:
-        return estado
-    disparados = [*estado.get("guardrails_disparados", []), "prescricao_na_pergunta"]
-    return {
-        **estado,
-        "resposta": safety.RECUSA_PRESCRICAO,
-        "fontes": [],
-        "guardrails_disparados": disparados,
-        "intencao": "recusado_prescricao",
-    }
+    deteccao_prescricao = safety.detectar_prescricao(estado["pergunta_sanitizada"], "pergunta")
+    if deteccao_prescricao.disparou:
+        disparados = [*estado.get("guardrails_disparados", []), "prescricao_na_pergunta"]
+        return {
+            **estado,
+            "resposta": safety.RECUSA_PRESCRICAO,
+            "fontes": [],
+            "guardrails_disparados": disparados,
+            "intencao": "recusado_prescricao",
+        }
+
+    deteccao_paciente = safety.detectar_paciente_divergente(
+        estado["pergunta_sanitizada"], estado.get("paciente_codigo")
+    )
+    if deteccao_paciente.disparou:
+        disparados = [*estado.get("guardrails_disparados", []), "paciente_divergente"]
+        return {
+            **estado,
+            "resposta": safety.RECUSA_PACIENTE_DIVERGENTE,
+            "fontes": [],
+            "guardrails_disparados": disparados,
+            "intencao": "recusado_paciente_divergente",
+        }
+
+    return estado
 
 
 def no_classificar_intencao(estado: EstadoAssistente) -> EstadoAssistente:
@@ -126,10 +140,14 @@ def no_gerar_documento(estado: EstadoAssistente, provider) -> EstadoAssistente:
     return {**estado, "resposta": resposta, "fontes": [], "requer_validacao_humana": True}
 
 
+_INTENCOES_COM_RECUSA_ESPECIFICA = ("recusado_prescricao", "recusado_paciente_divergente")
+
+
 def no_recusar(estado: EstadoAssistente) -> EstadoAssistente:
     """Recusa por fora_escopo. Se a recusa ja veio do guardrail de pergunta
-    (prescricao), preserva a mensagem especifica em vez de sobrescrever."""
-    if estado.get("intencao") == "recusado_prescricao":
+    (prescricao ou paciente divergente), preserva a mensagem especifica em vez
+    de sobrescrever."""
+    if estado.get("intencao") in _INTENCOES_COM_RECUSA_ESPECIFICA:
         return {**estado, "fontes": [], "requer_validacao_humana": False}
     return {**estado, "resposta": safety.RECUSA_ESCOPO, "fontes": [], "requer_validacao_humana": False}
 
@@ -170,7 +188,7 @@ def no_registrar_auditoria(estado: EstadoAssistente, provider_nome: str, inicio:
 
 
 def rotear_pos_guardrail_pergunta(estado: EstadoAssistente) -> str:
-    return "recusar" if estado.get("intencao") == "recusado_prescricao" else "classificar"
+    return "recusar" if estado.get("intencao") in _INTENCOES_COM_RECUSA_ESPECIFICA else "classificar"
 
 
 def rotear_por_intencao(estado: EstadoAssistente) -> str:

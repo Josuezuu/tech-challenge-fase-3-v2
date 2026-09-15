@@ -54,6 +54,12 @@ ESCALONAMENTO_HUMANO = (
     "profissional de saude."
 )
 
+RECUSA_PACIENTE_DIVERGENTE = (
+    "Este assistente so responde sobre o paciente identificado na sessao "
+    "atual. Nao e possivel consultar ou comentar dados de outro paciente por "
+    "este canal; acesse o prontuario correspondente pelo sistema institucional."
+)
+
 # --- sanitizacao de entrada ------------------------------------------------ #
 
 LIMITE_SANITIZACAO = 20_000
@@ -182,6 +188,36 @@ def detectar_prescricao(
     if lado == "pergunta":
         return _detectar_na_pergunta(texto)
     return _detectar_na_resposta(texto, tem_fonte)
+
+
+# --- divergencia de paciente ------------------------------------------------ #
+
+_PADRAO_CODIGO_PACIENTE = re.compile(r"\bPACIENTE_\d+\b", re.IGNORECASE)
+
+
+@dataclass(frozen=True)
+class DeteccaoPacienteDivergente:
+    disparou: bool
+    codigo_citado: str | None
+
+
+def detectar_paciente_divergente(texto: str, paciente_codigo: str | None) -> DeteccaoPacienteDivergente:
+    """Recusa pedido sobre codigo de paciente diferente do autenticado na sessao.
+
+    Nao ha vazamento de dado por tras disso — `src/db.py` so consulta pelo
+    `paciente_codigo` da sessao, nunca pelo que aparece em texto livre. Isso
+    recusa a TENTATIVA explicitamente, em vez de responder sobre o paciente da
+    sessao sem avisar que a pergunta era sobre outro codigo.
+    """
+    citados = {m.group(0).upper() for m in _PADRAO_CODIGO_PACIENTE.finditer(texto)}
+    if not citados:
+        return DeteccaoPacienteDivergente(False, None)
+
+    divergentes = citados - {(paciente_codigo or "").upper()}
+    if not divergentes:
+        return DeteccaoPacienteDivergente(False, None)
+
+    return DeteccaoPacienteDivergente(True, min(divergentes))
 
 
 # --- disclaimer ------------------------------------------------------------ #
