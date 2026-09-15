@@ -11,7 +11,10 @@ data/raw/pubmedqa.jsonl
 data/raw/medquad/
 data/processed/faiss_index/
 data/processed/hospital.db
-models/
+models/*
+!models/gguf/
+models/gguf/*
+!models/gguf/Modelfile
 logs/
 
 .env

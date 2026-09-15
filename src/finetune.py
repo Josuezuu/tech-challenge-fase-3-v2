@@ -16,6 +16,7 @@ tutorial.
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 from src import config
@@ -196,6 +197,13 @@ def mesclar_adapter_em_cpu(adapter_dir: Path, saida_dir: Path) -> None:
     saida_dir.mkdir(parents=True, exist_ok=True)
     modelo.save_pretrained(str(saida_dir))
     AutoTokenizer.from_pretrained(config.BASE_MODEL_ID).save_pretrained(str(saida_dir))
+
+    # o tokenizer "fast" nao reserializa o tokenizer.model (sentencepiece bruto);
+    # convert_hf_to_gguf.py exige esse arquivo pra vocabulario do Phi-3.
+    from huggingface_hub import hf_hub_download
+
+    tokenizer_model = hf_hub_download(config.BASE_MODEL_ID, filename="tokenizer.model")
+    shutil.copy(tokenizer_model, saida_dir / "tokenizer.model")
 
 
 def instrucoes_ollama() -> str:

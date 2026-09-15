@@ -1,0 +1,7 @@
+FROM ./phi3-medico-v2.q4_k_m.gguf
+
+# Passagem pura: src/llm.py (ProviderOllama) manda o prompt ja formatado por
+# src/prompt_template.py. Se o Ollama reaplicar o chat template do Phi-3
+# (<|user|>/<|assistant|>) por cima disso, o modelo recebe um prompt que
+# nunca viu no treino — nao pode ter NADA alem do prompt aqui.
+TEMPLATE """{{ .Prompt }}"""
