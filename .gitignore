@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# dados deterministicos (seed 42) sao versionados: data/raw/protocolos/,
+# data/processed/*.jsonl e relatorio_preparo.json, docs/evaluation_results.json,
+# docs/loss.json. So o que e binario ou grande demais fica de fora:
+data/raw/pubmedqa/
+data/raw/medquad/
+data/processed/faiss_index/
+data/processed/hospital.db
+models/
+logs/
+
+.env
